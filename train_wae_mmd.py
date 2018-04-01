@@ -18,7 +18,7 @@ import torchvision.utils as vutils
 from torch.autograd import Variable
 from utils import weights_init, compute_acc, save_checkpoint
 from models.common import z_adversary, transform_noise
-from models.wae_gan_network import Encoder, Decoder
+from models.wae_mmd_network import Encoder, Decoder
 from datasets import data_provider
 
 
