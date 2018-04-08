@@ -199,15 +199,21 @@ def train(opt):
             avg_loss_Z = all_loss_Z / (curr_iter + 1)
             avg_loss_R = all_loss_R / (curr_iter + 1)
 
-            print('[%d/%d][%d/%d] Loss_Z: %.4f (%.4f) Reconstruct: %.4f (%.4f)'
-                  % (epoch, opt.niter, i, len(dataloader),
-                     loss_z.data[0], avg_loss_Z, loss_recon.data[0], avg_loss_R))
+            if curr_iter % opt.print_every == 0:
+                print('[%d/%d][%d/%d] Loss_Z: %.4f (%.4f) Reconstruct: %.4f (%.4f)'
+                      % (epoch, opt.niter, i, len(dataloader),
+                         loss_z.data[0], avg_loss_Z, loss_recon.data[0], avg_loss_R))
+
             if i % 100 == 0:
                 decoder.eval()
+                noise_eval = Variable(torch.randn(input.size()[0], 64) * 8.)
+                if opt.cuda:
+                    noise_eval = noise_eval.cuda()
                 vutils.save_image(
                     real_cpu, '%s/real_samples.png' % opt.outf)
+                eval_images, _ = decoder(noise_eval)
                 vutils.save_image(
-                    input_rec.data,
+                    eval_images.data,
                     '%s/fake_samples_epoch_%03d.png' % (opt.outf, epoch)
                 )
                 print ("saved output images to {}".format(opt.outf))

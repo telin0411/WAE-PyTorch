@@ -37,14 +37,17 @@ def train(opt):
     # Define the encoder and initialize the weights
     encoder = Encoder(ngpu, noise=opt.noise)
     encoder.apply(weights_init)
+    print (encoder)
 
     # Define the decoder and initialize the weights
-    decoder = Decoder(ngpu)
+    decoder = Decoder(ngpu, input_normalize_sym=opt.input_normalize_sym)
     decoder.apply(weights_init)
+    print (decoder)
 
     # Define the discriminator and initialize the weights
-    discriminator = z_adversary(ngpu, ifcuda=opt.cuda)
+    discriminator = z_adversary(ngpu, ifcuda=opt.cuda, nowozin_trick=True)
     discriminator.apply(weights_init)
+    print (discriminator)
 
     # define loss functions
     rec_criterion = nn.MSELoss()
@@ -73,7 +76,7 @@ def train(opt):
         real_labels_ = labels[0]
         fake_labels_ = labels[1]
         loss_Gz = dis_criterion(sig(d_fake), real_labels_)
-        loss_match = loss_Gz
+        loss_match = l * loss_Gz
         return loss_Gz
 
     # tensor placeholders
@@ -160,6 +163,7 @@ def train(opt):
                 z_encoded = z_mean
 
             input_rec, _ = decoder(z_encoded)
+            # print (np.max(z_encoded.data.cpu().numpy()), np.min(z_encoded.data.cpu().numpy()))
             loss_recon = rec_criterion(input_rec, input)
             loss_recon.backward()
             optimizerDec.step()
@@ -169,7 +173,7 @@ def train(opt):
             sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
             if opt.cuda:
                 sample_noise = sample_noise.cuda()
-            D_real = discriminator(sample_noiese)
+            D_real = discriminator(sample_noise)
 
             sample_qz_mean, sample_qz_sigmas = encoder(input)
             if opt.noise == "gaussain":
@@ -218,15 +222,23 @@ def train(opt):
             avg_loss_D = all_loss_D / (curr_iter + 1)
             avg_loss_R = all_loss_R / (curr_iter + 1)
 
-            print('[%d/%d][%d/%d] Loss_D: %.4f (%.4f) Loss_G: %.4f (%.4f) Reconstruct: %.4f (%.4f)'
-                  % (epoch, opt.niter, i, len(dataloader),
-                     loss_d.data[0], avg_loss_D, loss_g.data[0], avg_loss_G, loss_recon.data[0], avg_loss_R))
+            if curr_iter % opt.print_every == 0:
+                print('[%d/%d][%d/%d] Loss_D: %.4f (%.4f) Loss_G: %.4f (%.4f) Reconstruct: %.4f (%.4f)'
+                      % (epoch, opt.niter, i, len(dataloader),
+                         loss_d.data[0], avg_loss_D, loss_g.data[0], avg_loss_G, loss_recon.data[0], avg_loss_R))
+
             if i % 100 == 0:
                 decoder.eval()
+                #noise_eval = Variable(torch.randn(input.size()[0], 64) * 8.)
+                noise_eval = Variable(torch.randn(input.size()[0], 64) * 3.)
+                if opt.cuda:
+                    noise_eval = noise_eval.cuda()
+                #print (np.max(noise_eval.data.cpu().numpy()), np.min(noise_eval.data.cpu().numpy()))
                 vutils.save_image(
                     real_cpu, '%s/real_samples.png' % opt.outf)
+                eval_images, _ = decoder(noise_eval)
                 vutils.save_image(
-                    input_rec.data,
+                    eval_images.data,
                     '%s/fake_samples_epoch_%03d.png' % (opt.outf, epoch)
                 )
                 print ("saved output images to {}".format(opt.outf))

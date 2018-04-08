@@ -48,14 +48,15 @@ class z_adversary(nn.Module):
         else:
             hi = self.net(input)
         if self.nowozin_trick:
-            normsq = torch.sum(input**2, 1)
+            normsq = torch.sum(input**2, 1, keepdim=False)
             sigma2_p_a = np.asarray(sigma2_p)
             m1 = Variable( 0.5 * torch.log(torch.from_numpy(np.asarray(2. * np.pi))) ).type(torch.FloatTensor)
             m2 = Variable( 0.5 * 64 * torch.log(torch.from_numpy(sigma2_p_a)) ).type(torch.FloatTensor)
             if self.ifcuda:
                 m1, m2 = m1.cuda(), m2.cuda()
                 normsq = normsq.cuda()
-            hi = hi - normsq / 2. / sigma2_p - m1 - m2
+            #hi = hi - normsq / 2. / sigma2_p - m1 - m2
+            hi = hi - m1 - m2 - normsq.view(input.shape[0],1) / 2. / sigma2_p
         return hi
 
 
