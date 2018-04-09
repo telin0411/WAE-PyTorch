@@ -45,12 +45,13 @@ def train(opt):
     print (decoder)
 
     # Define the discriminator and initialize the weights
-    discriminator = z_adversary(ngpu, ifcuda=opt.cuda, nowozin_trick=True)
+    discriminator = z_adversary(ngpu, ifcuda=opt.cuda, nowozin_trick=False)
     discriminator.apply(weights_init)
     print (discriminator)
 
     # define loss functions
     rec_criterion = nn.MSELoss()
+    pre_criterion = nn.MSELoss(size_average=False)
     dis_criterion = nn.BCELoss()
     #def d_crit(d_real, d_fake, l, eps=1e-15):
     #    loss = -l * torch.mean(torch.log(d_real + eps) + torch.log(1 - d_fake + eps))
@@ -92,6 +93,7 @@ def train(opt):
         encoder.cuda()
         decoder.cuda()
         rec_criterion.cuda()
+        pre_criterion.cuda()
         discriminator.cuda()
         input = input.cuda()
         dis_real_label, dis_fake_label = dis_real_label.cuda(), dis_fake_label.cuda()
@@ -126,11 +128,60 @@ def train(opt):
         optimizerDis.load_state_dict(checkpoint['optimizerDis'])
         print('Starting training at epoch {}'.format(start_epoch))
 
+
+    # pretrain the encoder so that mean and covariance
+    # of Qz will try to match those of Pz
+    if opt.e_pretrain and opt.checkpoint == '':
+        print ("#"*20 + " Pretrain Encoder " + "#"*20)
+        avg_loss_P = 0.0
+        for pepoch in range(opt.e_pretrain_iters):
+            for prei, data in enumerate(dataloader, 0):
+                encoder.train()
+                encoder.zero_grad()
+                # inputs
+                real_cpu, label = data
+                batch_size = real_cpu.size(0)
+                if opt.cuda:
+                    real_cpu = real_cpu.cuda()
+                input.data.resize_as_(real_cpu).copy_(real_cpu)
+                
+                # encode and sample noises
+                z_mean, z_sigmas = encoder(input)
+                sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
+                if opt.cuda:
+                    sample_noise = sample_noise.cuda()
+                
+                # mean
+                mean_pz = torch.mean(sample_noise, dim=0, keepdim=True)
+                mean_qz = torch.mean(z_mean, dim=0, keepdim=True)
+                mean_loss = pre_criterion(mean_qz, mean_pz)
+                cov_pz = torch.matmul(sample_noise-mean_pz, torch.transpose(sample_noise-mean_pz, 0, 1))
+                cov_pz /= opt.e_pretrain_sample_size - 1.
+                cov_qz = torch.matmul(z_mean-mean_qz, torch.transpose(z_mean-mean_qz, 0, 1))
+                cov_qz /= opt.e_pretrain_sample_size - 1.
+                cov_loss = pre_criterion(cov_qz, cov_pz)
+                pretrain_loss = mean_loss + cov_loss
+                pretrain_loss.backward()
+                optimizerEnc.step()
+
+                curr_piter = pepoch * len(dataloader) + prei
+                all_loss_P = avg_loss_P * curr_piter
+                all_loss_P += pretrain_loss.data[0]
+                avg_loss_P = all_loss_P / (curr_piter + 1)
+
+                print('[%d/%d][%d/%d] Loss_Pre: %.4f (%.4f)'
+                      % (pepoch, opt.e_pretrain_iters, prei, len(dataloader),
+                         pretrain_loss.data[0], avg_loss_P))
+                # early stopping criterion
+                if pretrain_loss.data[0] < 0.1 or curr_piter > 200:
+                    break
+
+    # main training loop
     avg_loss_R = 0.0
     avg_loss_G = 0.0
     avg_loss_D = 0.0
-    # main training loop
     assert start_epoch <= opt.niter
+    print ("#"*20 + " Main Training " + "#"*20)
     for epoch in range(start_epoch, opt.niter):
         for i, data in enumerate(dataloader, 0):
             encoder.train()
