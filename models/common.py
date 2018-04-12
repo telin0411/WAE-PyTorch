@@ -26,19 +26,19 @@ class z_adversary(nn.Module):
             assert pz == 'normal'
         self.net = nn.Sequential(
             # Layer 1
-            nn.Linear(64, 1024),
+            nn.Linear(64, 512),
             nn.ReLU(inplace=True),
             # Layer 2
-            nn.Linear(1024, 1024),
+            nn.Linear(512, 512),
             nn.ReLU(inplace=True),
             # Layer 3
-            nn.Linear(1024, 1024),
+            nn.Linear(512, 512),
             nn.ReLU(inplace=True),
             # Layer 4
-            nn.Linear(1024, 1024),
+            nn.Linear(512, 512),
             nn.ReLU(inplace=True),
             # Layer 5
-            nn.Linear(1024, 1),
+            nn.Linear(512, 1),
         )
 
     def forward(self, input):

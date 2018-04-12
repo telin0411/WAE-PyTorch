@@ -52,7 +52,9 @@ def train(opt):
     # define loss functions
     rec_criterion = nn.MSELoss()
     pre_criterion = nn.MSELoss(size_average=False)
-    dis_criterion = nn.BCELoss()
+    dis_criterion1 = nn.BCELoss()
+    dis_criterion2 = nn.BCELoss()
+    dis_criterion3 = nn.BCELoss()
     #def d_crit(d_real, d_fake, l, eps=1e-15):
     #    loss = -l * torch.mean(torch.log(d_real + eps) + torch.log(1 - d_fake + eps))
     #    return loss
@@ -65,8 +67,8 @@ def train(opt):
             sig = sig.cuda()
         real_labels_ = labels[0]
         fake_labels_ = labels[1]
-        loss_Pz = dis_criterion(sig(d_real), real_labels_)
-        loss_Qz = dis_criterion(sig(d_fake), fake_labels_)
+        loss_Pz = dis_criterion1(sig(d_real), real_labels_)
+        loss_Qz = dis_criterion2(sig(d_fake), fake_labels_)
         loss_adv = l * (loss_Pz + loss_Qz)
         return loss_adv
 
@@ -76,7 +78,7 @@ def train(opt):
             sig = sig.cuda()
         real_labels_ = labels[0]
         fake_labels_ = labels[1]
-        loss_Gz = dis_criterion(sig(d_fake), real_labels_)
+        loss_Gz = dis_criterion3(sig(d_fake), real_labels_)
         loss_match = l * loss_Gz
         return loss_Gz
 
@@ -94,6 +96,9 @@ def train(opt):
         decoder.cuda()
         rec_criterion.cuda()
         pre_criterion.cuda()
+        dis_criterion1.cuda()
+        dis_criterion2.cuda()
+        dis_criterion3.cuda()
         discriminator.cuda()
         input = input.cuda()
         dis_real_label, dis_fake_label = dis_real_label.cuda(), dis_fake_label.cuda()
@@ -108,7 +113,7 @@ def train(opt):
     # setup optimizer
     optimizerEnc = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
     optimizerDec = optim.Adam(decoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-    optimizerDis = optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    optimizerDis = optim.Adam(discriminator.parameters(), lr=opt.lr*1, betas=(opt.beta1, 0.999))
 
     # loading the pre-trained weights
     start_epoch = 0
@@ -148,6 +153,7 @@ def train(opt):
                 # encode and sample noises
                 z_mean, z_sigmas = encoder(input)
                 sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
+                #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     sample_noise = sample_noise.cuda()
                 
@@ -173,7 +179,7 @@ def train(opt):
                       % (pepoch, opt.e_pretrain_iters, prei, len(dataloader),
                          pretrain_loss.data[0], avg_loss_P))
                 # early stopping criterion
-                if pretrain_loss.data[0] < 0.1 or curr_piter > 200:
+                if pretrain_loss.data[0] < 0.1 or curr_piter > 5000:
                     break
 
     # main training loop
@@ -222,6 +228,7 @@ def train(opt):
 
             encoder.eval()
             sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
+            #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
             if opt.cuda:
                 sample_noise = sample_noise.cuda()
             D_real = discriminator(sample_noise)
@@ -281,7 +288,8 @@ def train(opt):
             if i % 100 == 0:
                 decoder.eval()
                 #noise_eval = Variable(torch.randn(input.size()[0], 64) * 8.)
-                noise_eval = Variable(torch.randn(input.size()[0], 64) * 3.)
+                noise_eval = Variable(torch.randn(input.size()[0], 64) * opt.pz_scale)
+                #noise_eval = Variable(torch.randn(input.size()[0], 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     noise_eval = noise_eval.cuda()
                 #print (np.max(noise_eval.data.cpu().numpy()), np.min(noise_eval.data.cpu().numpy()))

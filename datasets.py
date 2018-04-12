@@ -15,7 +15,7 @@ from torchvision import datasets, transforms
 
 
 def data_provider(data_dir, batch_size, img_size=64, norm=0.5, num_workers=1,
-                  shuffle=True, isCrop=False, crop_size=64, mode="celebA"):
+                  shuffle=True, isCrop=False, crop_size=140, mode="celebA"):
     assert mode in ["celebA", "CelebA", "cifar10", "CIFAR10", "MNIST", "mnist"]
 
     if mode in ["celebA", "CelebA"]:

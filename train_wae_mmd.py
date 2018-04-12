@@ -134,10 +134,59 @@ def train(opt):
         optimizerDec.load_state_dict(checkpoint['optimizerDec'])
         print('Starting training at epoch {}'.format(start_epoch))
 
+    # pretrain the encoder so that mean and covariance
+    # of Qz will try to match those of Pz
+    if opt.e_pretrain and opt.checkpoint == '':
+        print ("#"*20 + " Pretrain Encoder " + "#"*20)
+        avg_loss_P = 0.0
+        for pepoch in range(opt.e_pretrain_iters):
+            for prei, data in enumerate(dataloader, 0):
+                encoder.train()
+                encoder.zero_grad()
+                # inputs
+                real_cpu, label = data
+                batch_size = real_cpu.size(0)
+                if opt.cuda:
+                    real_cpu = real_cpu.cuda()
+                input.data.resize_as_(real_cpu).copy_(real_cpu)
+                
+                # encode and sample noises
+                z_mean, z_sigmas = encoder(input)
+                sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
+                #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
+                if opt.cuda:
+                    sample_noise = sample_noise.cuda()
+                
+                # mean
+                mean_pz = torch.mean(sample_noise, dim=0, keepdim=True)
+                mean_qz = torch.mean(z_mean, dim=0, keepdim=True)
+                mean_loss = pre_criterion(mean_qz, mean_pz)
+                cov_pz = torch.matmul(sample_noise-mean_pz, torch.transpose(sample_noise-mean_pz, 0, 1))
+                cov_pz /= opt.e_pretrain_sample_size - 1.
+                cov_qz = torch.matmul(z_mean-mean_qz, torch.transpose(z_mean-mean_qz, 0, 1))
+                cov_qz /= opt.e_pretrain_sample_size - 1.
+                cov_loss = pre_criterion(cov_qz, cov_pz)
+                pretrain_loss = mean_loss + cov_loss
+                pretrain_loss.backward()
+                optimizerEnc.step()
+
+                curr_piter = pepoch * len(dataloader) + prei
+                all_loss_P = avg_loss_P * curr_piter
+                all_loss_P += pretrain_loss.data[0]
+                avg_loss_P = all_loss_P / (curr_piter + 1)
+
+                print('[%d/%d][%d/%d] Loss_Pre: %.4f (%.4f)'
+                      % (pepoch, opt.e_pretrain_iters, prei, len(dataloader),
+                         pretrain_loss.data[0], avg_loss_P))
+                # early stopping criterion
+                if pretrain_loss.data[0] < 0.1 or curr_piter > 5000:
+                    break
+
+    # main training loop
     avg_loss_R = 0.0
     avg_loss_Z = 0.0
-    # main training loop
     assert start_epoch <= opt.niter
+    print ("#"*20 + " Main Training " + "#"*20)
     for epoch in range(start_epoch, opt.niter):
         for i, data in enumerate(dataloader, 0):
             encoder.train()
@@ -206,7 +255,7 @@ def train(opt):
 
             if i % 100 == 0:
                 decoder.eval()
-                noise_eval = Variable(torch.randn(input.size()[0], 64) * 8.)
+                noise_eval = Variable(torch.randn(input.size()[0], 64) * opt.pz_scale)
                 if opt.cuda:
                     noise_eval = noise_eval.cuda()
                 vutils.save_image(
