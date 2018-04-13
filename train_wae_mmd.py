@@ -76,7 +76,8 @@ def kernel(opt, sample_qz, sample_pz):
 
 def train(opt):
     # dataset
-    dataloader = data_provider(opt.dataroot, opt.batch_size, isCrop=True, mode=opt.dataset)
+    dataloader = data_provider(opt.dataroot, opt.batch_size, norm=opt.img_norm,
+                               isCrop=True, mode=opt.dataset)
 
     # some hyper parameters
     ngpu = int(opt.ngpu)
@@ -96,6 +97,7 @@ def train(opt):
 
     # define loss functions
     rec_criterion = nn.MSELoss()
+    pre_criterion = nn.MSELoss(size_average=False)
     dis_criterion = nn.BCELoss()
 
     # tensor placeholders
@@ -107,6 +109,8 @@ def train(opt):
         encoder.cuda()
         decoder.cuda()
         rec_criterion.cuda()
+        pre_criterion.cuda()
+        dis_criterion.cuda()
         input = input.cuda()
         noise = noise.cuda()
 

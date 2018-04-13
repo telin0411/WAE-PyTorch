@@ -51,6 +51,7 @@ def get_parsers():
     parser.add_argument('--gpu_id', type=int, default=0, help='The ID of the specified GPU')
     parser.add_argument('--LAMBDA', type=float, default=100, help='LAMBDA for WAE')
     parser.add_argument('--eps', type=float, default=1e-15, help='epsilon')
+    parser.add_argument('--img_norm', type=float, default=None, help='normalization of images')
     parser.add_argument('--mode', type=str, default='gan', help='| gan | mmd |')
     parser.add_argument('--kernel', type=str, default='IMQ', help='| RBF | IMQ |')
     parser.add_argument('--pz_scale', type=float, default=1., help='sacling of sample noise')

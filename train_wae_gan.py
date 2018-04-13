@@ -24,7 +24,8 @@ from datasets import data_provider
 
 def train(opt):
     # dataset
-    dataloader = data_provider(opt.dataroot, opt.batch_size, isCrop=True, mode=opt.dataset)
+    dataloader = data_provider(opt.dataroot, opt.batch_size, norm=opt.img_norm,
+                               isCrop=True, mode=opt.dataset)
 
     # some hyper parameters
     ngpu = int(opt.ngpu)
@@ -113,7 +114,7 @@ def train(opt):
     # setup optimizer
     optimizerEnc = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
     optimizerDec = optim.Adam(decoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-    optimizerDis = optim.Adam(discriminator.parameters(), lr=opt.lr*1, betas=(opt.beta1, 0.999))
+    optimizerDis = optim.Adam(discriminator.parameters(), lr=opt.lr*3, betas=(opt.beta1, 0.999))
 
     # loading the pre-trained weights
     start_epoch = 0
