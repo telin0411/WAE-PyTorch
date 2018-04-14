@@ -109,6 +109,7 @@ def train(opt):
 
     # setup optimizer
     optimizerEnc = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    optimizerGen = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
     optimizerDec = optim.Adam(decoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
     optimizerDis = optim.Adam(discriminator.parameters(), lr=opt.lr*3, betas=(opt.beta1, 0.999))
 
@@ -126,6 +127,7 @@ def train(opt):
         decoder.load_state_dict(checkpoint['decoder'])
         discriminator.load_state_dict(checkpoint['discriminator'])
         optimizerEnc.load_state_dict(checkpoint['optimizerEnc'])
+        optimizerGen.load_state_dict(checkpoint['optimizerGen'])
         optimizerDec.load_state_dict(checkpoint['optimizerDec'])
         optimizerDis.load_state_dict(checkpoint['optimizerDis'])
         print('Starting training at epoch {}'.format(start_epoch))
@@ -263,7 +265,7 @@ def train(opt):
             dis_labels = (dis_real_label, dis_fake_label)
             loss_g = g_crit(D_fake, LAMBDA, dis_labels, eps=1e-15)
             loss_g.backward()
-            optimizerEnc.step()
+            optimizerGen.step()
 
             # compute the average loss
             curr_iter = epoch * len(dataloader) + i
@@ -311,6 +313,7 @@ def train(opt):
             'discriminator': discriminator.state_dict(),
             'best_mse': best_mse,
             'optimizerEnc' : optimizerEnc.state_dict(),
+            'optimizerGen' : optimizerEnc.state_dict(),
             'optimizerDec' : optimizerDec.state_dict(),
             'optimizerDis' : optimizerDis.state_dict(),
         }, is_best, path=opt.outf)
