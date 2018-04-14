@@ -12,7 +12,7 @@ The below is an illustration of the main concept for the proposed training.
 Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. For VAE forces every latent points to match P depicted as the white shape in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results. 
 
 The two proposed algorithms are as shown below:
-<img src="figs/wae_model.png"/>
+<img src="figs/wae_algo.png"/>
 
 Results generated from random sampled noise vector (GAN):
 
