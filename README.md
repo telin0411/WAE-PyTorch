@@ -15,8 +15,10 @@ The two proposed algorithms are as shown below:
 <img src="figs/wae_algo.png"/>
 
 Results generated from random sampled noise vector (GAN):
+<img src="figs/gan_results.png"/>
 
 Results generated from random sampled noise vector (MMD):
+<img src="figs/mmd_results.png"/>
 
 * The implemented model can be trained on dataset [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html).
 * Note that this implementation may differ in details from the original paper such as model architectures, hyperparameters, applied optimizer, etc. while maintaining the main proposed idea.
