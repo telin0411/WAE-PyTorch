@@ -55,7 +55,6 @@ class z_adversary(nn.Module):
             if self.ifcuda:
                 m1, m2 = m1.cuda(), m2.cuda()
                 normsq = normsq.cuda()
-            #hi = hi - normsq / 2. / sigma2_p - m1 - m2
             hi = hi - m1 - m2 - normsq.view(input.shape[0],1) / 2. / sigma2_p
         return hi
 

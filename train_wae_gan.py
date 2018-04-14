@@ -52,16 +52,12 @@ def train(opt):
 
     # define loss functions
     rec_criterion = nn.MSELoss()
-    pre_criterion = nn.MSELoss(size_average=False)
+    pre_criterion = nn.MSELoss(size_average=True)
     dis_criterion1 = nn.BCELoss()
     dis_criterion2 = nn.BCELoss()
     dis_criterion3 = nn.BCELoss()
-    #def d_crit(d_real, d_fake, l, eps=1e-15):
-    #    loss = -l * torch.mean(torch.log(d_real + eps) + torch.log(1 - d_fake + eps))
-    #    return loss
-    #def g_crit(d_fake, l, eps=1e-15):
-    #    loss = -l * torch.mean(torch.log(d_fake + eps))
-    #    return loss
+
+    # GAN penalties
     def d_crit(d_real, d_fake, l, labels, eps=1e-15):
         sig = nn.Sigmoid()
         if opt.cuda:
@@ -180,7 +176,7 @@ def train(opt):
                       % (pepoch, opt.e_pretrain_iters, prei, len(dataloader),
                          pretrain_loss.data[0], avg_loss_P))
                 # early stopping criterion
-                if pretrain_loss.data[0] < 0.1 or curr_piter > 5000:
+                if pretrain_loss.data[0] < 0.01 or curr_piter > 5000:
                     break
 
     # main training loop
