@@ -50,7 +50,7 @@ $ python download.py celebA
 * Notice that since the dataloader utilizes image folder API, so the dataroot should look like /path/to/dataroot/folder/XXX.jpg
 * In this example the /path/to/dataroot/ is data/CelebA and you can name the folder whatever name you like.
 ```bash
-$ python3 main.py --dataroot=data/CelebA --dataset='celebA' --gpu_id=1 --cuda --noise='add_noise' --outf=gan_outputs/ --mode='gan'
+python3 main.py --dataroot=data/CelebA --dataset='celebA' --gpu_id=0 --cuda --noise='add_noise' --outf=gan_outputs/ --mode='gan' --lr=0.0003 --pz_scale=1 --LAMBDA=10 --niter=55 --e_pretrain
 ```
 
 ## Author
