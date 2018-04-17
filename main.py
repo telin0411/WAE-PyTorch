@@ -1,7 +1,6 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-from __future__ import print_function
 import argparse
 import os
 import numpy as np
@@ -32,8 +31,6 @@ def get_parsers():
     parser.add_argument('--batch_size', type=int, default=100, help='input batch size')
     parser.add_argument('--image_size', type=int, default=128, help='the height / width of the input image to network')
     parser.add_argument('--nz', type=int, default=64, help='size of the latent z vector, noise')
-    parser.add_argument('--ngf', type=int, default=64)
-    parser.add_argument('--ndf', type=int, default=64)
     parser.add_argument('--niter', type=int, default=25, help='number of epochs to train for')
     parser.add_argument('--print_every', type=int, default=10, help='number iterations to print out statements')
     parser.add_argument('--lr', type=float, default=0.0005, help='learning rate, default=0.0002')

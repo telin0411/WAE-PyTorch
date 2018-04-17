@@ -6,8 +6,6 @@ Downloads the following:
 - LSUN dataset
 - MNIST dataset
 """
-
-from __future__ import print_function
 import os
 import sys
 import gzip

@@ -1,8 +1,6 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-from __future__ import print_function
-import argparse
 import os
 import numpy as np
 import random
@@ -38,7 +36,7 @@ def kernel(opt, sample_qz, sample_pz):
     batch_size = sample_qz.size()[0]
     n = batch_size
     nf = float(n)
-    half_size = int((n * n - n) / 2)
+    half_size = int((n**2 - n) / 2)
     # eye matrix
     eye = torch.eye(n)
     eye_var = Variable(eye)
@@ -63,15 +61,15 @@ def kernel(opt, sample_qz, sample_pz):
     elif mode == 'RBF':
         sigma2_k = torch.topk(dist.view(-1), half_size)[0][half_size-1]
         sigma2_k += torch.topk(dist_qz.view(-1), half_size)[0][half_size-1]
-        res1 = torch.exp( -dist_qz / 2. / sigma2_k) + torch.exp( -dist_pz / 2. / sigma2_k)
+        res1 = torch.exp(-dist_qz / 2. / sigma2_k) + torch.exp(-dist_pz / 2. / sigma2_k)
         res1 = torch.mul(res1, 1. - eye_var)
         res1 = torch.sum(res1) / (nf**2 - nf)
-        res2 = torch.exp( -dist / 2. / sigma2_k)
+        res2 = torch.exp(-dist / 2. / sigma2_k)
         res2 = torch.sum(res2) * 2. / (nf**2)
         stat = res1 - res2
     else:
         raise NotImplementedError
-    return stat
+    return opt.LAMBDA * stat
 
 
 def train(opt):
@@ -82,18 +80,17 @@ def train(opt):
     # some hyper parameters
     ngpu = int(opt.ngpu)
     nz = int(opt.nz)
-    ngf = int(opt.ngf)
-    ndf = int(opt.ndf)
-    nc = 3
     LAMBDA = opt.LAMBDA
 
     # Define the encoder and initialize the weights
     encoder = Encoder(ngpu, noise=opt.noise)
     encoder.apply(weights_init)
+    print (encoder)
 
     # Define the decoder and initialize the weights
     decoder = Decoder(ngpu)
     decoder.apply(weights_init)
+    print (decoder)
 
     # define loss functions
     rec_criterion = nn.MSELoss()
@@ -157,7 +154,6 @@ def train(opt):
                 # encode and sample noises
                 z_mean, z_sigmas = encoder(input)
                 sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
-                #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     sample_noise = sample_noise.cuda()
                 
@@ -208,7 +204,7 @@ def train(opt):
             input.data.resize_as_(real_cpu).copy_(real_cpu)
 
             z_mean, z_sigmas = encoder(input)
-            if opt.noise == "gaussain":
+            if opt.noise == "gaussian":
                 z_sigmas = torch.clamp(z_sigmas, -50, 50)
                 noise_real_add = torch.randn(batch_size, 64)
                 noise_real_add = Variable(noise_real_add)
@@ -230,7 +226,7 @@ def train(opt):
                 sample_noise = sample_noise.cuda()                               
                                                                                    
             sample_qz_mean, sample_qz_sigmas = encoder(input)                      
-            if opt.noise == "gaussain":                                            
+            if opt.noise == "gaussian":                                            
                 sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)          
                 noise_fake_add = torch.randn(batch_size, 64)                       
                 noise_fake_add = Variable(noise_fake_add)                          

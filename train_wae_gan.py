@@ -1,7 +1,6 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-from __future__ import print_function
 import argparse
 import os
 import numpy as np
@@ -30,9 +29,6 @@ def train(opt):
     # some hyper parameters
     ngpu = int(opt.ngpu)
     nz = int(opt.nz)
-    ngf = int(opt.ngf)
-    ndf = int(opt.ndf)
-    nc = 3
     LAMBDA = opt.LAMBDA
 
     # Define the encoder and initialize the weights
@@ -62,10 +58,10 @@ def train(opt):
         sig = nn.Sigmoid()
         if opt.cuda:
             sig = sig.cuda()
-        real_labels_ = labels[0]
-        fake_labels_ = labels[1]
-        loss_Pz = dis_criterion1(sig(d_real), real_labels_)
-        loss_Qz = dis_criterion2(sig(d_fake), fake_labels_)
+        REAL_LABELs_ = labels[0]
+        FAKE_LABELs_ = labels[1]
+        loss_Pz = dis_criterion1(sig(d_real), REAL_LABELs_)
+        loss_Qz = dis_criterion2(sig(d_fake), FAKE_LABELs_)
         loss_adv = l * (loss_Pz + loss_Qz)
         return loss_adv
 
@@ -73,19 +69,19 @@ def train(opt):
         sig = nn.Sigmoid()
         if opt.cuda:
             sig = sig.cuda()
-        real_labels_ = labels[0]
-        fake_labels_ = labels[1]
-        loss_Gz = dis_criterion3(sig(d_fake), real_labels_)
+        REAL_LABELs_ = labels[0]
+        FAKE_LABELs_ = labels[1]
+        loss_Gz = dis_criterion3(sig(d_fake), REAL_LABELs_)
         loss_match = l * loss_Gz
-        return loss_Gz
+        return loss_match
 
     # tensor placeholders
     input = torch.FloatTensor(opt.batch_size, 3, opt.image_size, opt.image_size)
     noise = torch.FloatTensor(opt.batch_size, nz)
-    dis_real_label = torch.FloatTensor(opt.batch_size)
-    dis_fake_label = torch.FloatTensor(opt.batch_size)
-    real_label = 1
-    fake_label = 0
+    dis_REAL_LABEL = torch.FloatTensor(opt.batch_size)
+    dis_FAKE_LABEL = torch.FloatTensor(opt.batch_size)
+    REAL_LABEL = 1
+    FAKE_LABEL = 0
 
     # if using cuda
     if opt.cuda:
@@ -98,14 +94,14 @@ def train(opt):
         dis_criterion3.cuda()
         discriminator.cuda()
         input = input.cuda()
-        dis_real_label, dis_fake_label = dis_real_label.cuda(), dis_fake_label.cuda()
+        dis_REAL_LABEL, dis_FAKE_LABEL = dis_REAL_LABEL.cuda(), dis_FAKE_LABEL.cuda()
         noise = noise.cuda()
 
     # define variables
     input = Variable(input)
     noise = Variable(noise)
-    dis_real_label = Variable(dis_real_label)
-    dis_fake_label = Variable(dis_fake_label)
+    dis_REAL_LABEL = Variable(dis_REAL_LABEL)
+    dis_FAKE_LABEL = Variable(dis_FAKE_LABEL)
 
     # setup optimizer
     optimizerEnc = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -152,7 +148,6 @@ def train(opt):
                 # encode and sample noises
                 z_mean, z_sigmas = encoder(input)
                 sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
-                #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     sample_noise = sample_noise.cuda()
                 
@@ -204,11 +199,12 @@ def train(opt):
             if opt.cuda:
                 real_cpu = real_cpu.cuda()
             input.data.resize_as_(real_cpu).copy_(real_cpu)
-            dis_real_label.data.resize_(batch_size).fill_(real_label)
-            dis_fake_label.data.resize_(batch_size).fill_(fake_label)
+            dis_REAL_LABEL.data.resize_(batch_size).fill_(REAL_LABEL)
+            dis_FAKE_LABEL.data.resize_(batch_size).fill_(FAKE_LABEL)
 
+            # standard VAE training, reconstruction loss
             z_mean, z_sigmas = encoder(input)
-            if opt.noise == "gaussain":
+            if opt.noise == "gaussian":
                 z_sigmas = torch.clamp(z_sigmas, -50, 50)
                 noise_real_add = torch.randn(batch_size, 64)
                 noise_real_add = Variable(noise_real_add)
@@ -219,21 +215,20 @@ def train(opt):
                 z_encoded = z_mean
 
             input_rec, _ = decoder(z_encoded)
-            # print (np.max(z_encoded.data.cpu().numpy()), np.min(z_encoded.data.cpu().numpy()))
             loss_recon = rec_criterion(input_rec, input)
             loss_recon.backward()
             optimizerDec.step()
             optimizerEnc.step()
 
+            # training discriminator
             encoder.eval()
             sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
-            #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
             if opt.cuda:
                 sample_noise = sample_noise.cuda()
             D_real = discriminator(sample_noise)
 
             sample_qz_mean, sample_qz_sigmas = encoder(input)
-            if opt.noise == "gaussain":
+            if opt.noise == "gaussian":
                 sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)
                 noise_fake_add = torch.randn(batch_size, 64)
                 noise_fake_add = Variable(noise_fake_add)
@@ -244,11 +239,12 @@ def train(opt):
                 sample_qz = sample_qz_mean
             D_fake = discriminator(sample_qz)
 
-            dis_labels = (dis_real_label, dis_fake_label)
+            dis_labels = (dis_REAL_LABEL, dis_FAKE_LABEL)
             loss_d = d_crit(D_real, D_fake, LAMBDA, dis_labels, eps=1e-15)
             loss_d.backward()
             optimizerDis.step()
 
+            # training generator
             encoder.train()
             sample_qz_mean, sample_qz_sigmas = encoder(input)
             if opt.noise == "gaussain":
@@ -262,7 +258,7 @@ def train(opt):
                 sample_qz = sample_qz_mean
             D_fake = discriminator(sample_qz)
 
-            dis_labels = (dis_real_label, dis_fake_label)
+            dis_labels = (dis_REAL_LABEL, dis_FAKE_LABEL)
             loss_g = g_crit(D_fake, LAMBDA, dis_labels, eps=1e-15)
             loss_g.backward()
             optimizerGen.step()
@@ -286,12 +282,9 @@ def train(opt):
 
             if i % 100 == 0:
                 decoder.eval()
-                #noise_eval = Variable(torch.randn(input.size()[0], 64) * 8.)
                 noise_eval = Variable(torch.randn(input.size()[0], 64) * opt.pz_scale)
-                #noise_eval = Variable(torch.randn(input.size()[0], 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     noise_eval = noise_eval.cuda()
-                #print (np.max(noise_eval.data.cpu().numpy()), np.min(noise_eval.data.cpu().numpy()))
                 vutils.save_image(
                     real_cpu, '%s/real_samples.png' % opt.outf)
                 eval_images, _ = decoder(noise_eval)
