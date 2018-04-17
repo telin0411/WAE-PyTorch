@@ -5,8 +5,6 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torch.autograd import Variable
 
 
@@ -76,7 +74,7 @@ class transform_noise(nn.Module):
 
     def forward(self, code, eps):
         if isinstance(code.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-            A = nn.parallel.data_parallel(self.net, code, range(self.ngpu)) 
+            A = nn.parallel.data_parallel(self.net, code, range(self.ngpu))
         else:
             A = self.net(code)
         eps = eps.view(-1, 1, 64)

@@ -7,15 +7,12 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-from utils import weights_init, compute_acc, save_checkpoint
-from models.common import z_adversary, transform_noise
+
+from utils import weights_init, save_checkpoint
 from models.wae_mmd_network import Encoder, Decoder
 from datasets import data_provider
 
@@ -150,13 +147,13 @@ def train(opt):
                 if opt.cuda:
                     real_cpu = real_cpu.cuda()
                 input.data.resize_as_(real_cpu).copy_(real_cpu)
-                
+
                 # encode and sample noises
                 z_mean, z_sigmas = encoder(input)
                 sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
                 if opt.cuda:
                     sample_noise = sample_noise.cuda()
-                
+
                 # mean
                 mean_pz = torch.mean(sample_noise, dim=0, keepdim=True)
                 mean_qz = torch.mean(z_mean, dim=0, keepdim=True)
@@ -222,19 +219,19 @@ def train(opt):
 
             # mmd penalty
             sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
-            if opt.cuda:                                                           
-                sample_noise = sample_noise.cuda()                               
-                                                                                   
-            sample_qz_mean, sample_qz_sigmas = encoder(input)                      
-            if opt.noise == "gaussian":                                            
-                sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)          
-                noise_fake_add = torch.randn(batch_size, 64)                       
-                noise_fake_add = Variable(noise_fake_add)                          
-                if opt.cuda:                                                       
-                    noise_fake_add = noise_fake_add.cuda()                      
+            if opt.cuda:
+                sample_noise = sample_noise.cuda()
+
+            sample_qz_mean, sample_qz_sigmas = encoder(input)
+            if opt.noise == "gaussian":
+                sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)
+                noise_fake_add = torch.randn(batch_size, 64)
+                noise_fake_add = Variable(noise_fake_add)
+                if opt.cuda:
+                    noise_fake_add = noise_fake_add.cuda()
                 sample_qz = sample_qz_mean + torch.mul(noise_fake_add, torch.sqrt(1e-8 + torch.exp(sample_qz_sigmas)))
-            else:                                                               
-                sample_qz = sample_qz_mean                                      
+            else:
+                sample_qz = sample_qz_mean
             loss_z = kernel(opt, sample_qz, sample_noise)
             loss_z.backward()
             optimizerEnc.step()

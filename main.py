@@ -3,8 +3,10 @@ Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/t
 """
 import argparse
 import os
-import numpy as np
 import random
+
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -15,6 +17,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
+
 from utils import weights_init, compute_acc, save_checkpoint
 from models.common import z_adversary, transform_noise
 from models.wae_gan_network import Encoder, Decoder
@@ -36,7 +39,7 @@ def get_parsers():
     parser.add_argument('--lr', type=float, default=0.0005, help='learning rate, default=0.0002')
     parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
     parser.add_argument('--cuda', action='store_true', help='enables cuda')
-    parser.add_argument('--e_pretrain', action='store_true', help='if pretrain endoder')
+    parser.add_argument('--e_pretrain', action='store_true', help='if pretrain encoder')
     parser.add_argument('--e_pretrain_sample_size', type=int, default=256, help='sample size for encoder pretrain')
     parser.add_argument('--e_pretrain_iters', type=int, default=1, help='max epochs to pretrain the encoder')
     parser.add_argument('--input_normalize_sym', action='store_true', help='for tanh of GAN outputs')
@@ -44,7 +47,7 @@ def get_parsers():
     parser.add_argument('--checkpoint', default='', help="path to checkpoint (to continue training)")
     parser.add_argument('--outf', default='.', help='folder to output images and model checkpoints')
     parser.add_argument('--noise', default='gaussian', help='noise type for WAE, | gaussian | add_noise |')
-    parser.add_argument('--seed', type=int, help='manual seed')
+    parser.add_argument('--seed', type=int, default=None, help='manual seed')
     parser.add_argument('--gpu_id', type=int, default=0, help='The ID of the specified GPU')
     parser.add_argument('--LAMBDA', type=float, default=100, help='LAMBDA for WAE')
     parser.add_argument('--eps', type=float, default=1e-15, help='epsilon')
@@ -59,28 +62,28 @@ def get_parsers():
 
 def main():
     opt = get_parsers()
-    # specify the gpu id if using only 1 gpu                                       
-    if opt.ngpu == 1:                                                              
-        os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu_id)                       
-                                                                                   
-    # output directory                                                             
-    try:                                                                           
-        os.makedirs(opt.outf)                                                      
-    except OSError:                                                                
-        pass                                                                       
-                                                                                   
-    # random seeds                                                                 
-    if opt.seed is None:                                                           
-        opt.seed = random.randint(1, 10000)                                        
-    print("Random Seed: ", opt.seed)                                               
-    random.seed(opt.seed)                                                          
-    torch.manual_seed(opt.seed)                                                    
-    if opt.cuda:                                                                   
-        torch.cuda.manual_seed_all(opt.seed)                                       
-                                                                                   
-    # use cuda                                                                     
-    cudnn.benchmark = True                                                         
-    if torch.cuda.is_available() and not opt.cuda:                                 
+    # specify the gpu id if using only 1 gpu
+    if opt.ngpu == 1:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu_id)
+
+    # output directory
+    try:
+        os.makedirs(opt.outf)
+    except OSError:
+        pass
+
+    # random seeds
+    if opt.seed is None:
+        opt.seed = random.randint(1, 10000)
+    print("Random Seed: ", opt.seed)
+    random.seed(opt.seed)
+    torch.manual_seed(opt.seed)
+    if opt.cuda:
+        torch.cuda.manual_seed_all(opt.seed)
+
+    # use cuda
+    cudnn.benchmark = True
+    if torch.cuda.is_available() and not opt.cuda:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
     # main training

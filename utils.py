@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import argparse
+=======
+>>>>>>> 4569036f49febfe8de6f98b6b700d927a8a8443a
 import os
 import random
-import numpy as np
 import shutil
+import math
+
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -14,7 +20,6 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-import math
 
 
 # custom weights initialization called on netG and netD
