@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import argparse
-=======
->>>>>>> 4569036f49febfe8de6f98b6b700d927a8a8443a
 import os
 import random
 import shutil
