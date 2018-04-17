@@ -5,14 +5,21 @@ As part of the implementation series of [Joseph Lim's group at USC](http://csail
 This project is implemented by [Te-Lin Wu](https://github.com/telin0411) and the codes have been reviewed by [Youngwoon Lee](https://github.com/youngwoon) before being published.
 
 ## Descriptions
-This project is a [PyTorch](http://pytorch.org) implementation of [Wasserstein Auto-Encoders (WAE)](https://arxiv.org/pdf/1711.01558.pdf) which was published as a conference proceeding at ICLR 2018 as an Oral. The main idea of this paper is to minimize a penalized form of Wasserstein distance between the model-induced latent distribution and the target distribution. This is different from standard variational auto-encoder (VAE) training where WAE encourages the latent distribution to match the prior. This paper propose two penalties, a GAN-based penalty and a Maximum Mean Discrepancy (MMD) based penalty to push the two distributions closer. Differ from normal GAN-based adversarial auto-encoder (AAE), WAE-GAN performs the adversarial training directly on the latent space, which can deal with possibly multi-modal prior. For the MMD-based penalty, two kernels, which are RBF and IMQ, are used for the positive-definite reproducing kernel measuring the distributional divergence. Priors in this work can be assumed to be drawn from Gaussian distribution. (Details please refer to the original paper.)
+This project is a [PyTorch](http://pytorch.org) implementation of [Wasserstein Auto-Encoders (WAE)](https://arxiv.org/pdf/1711.01558.pdf) which was published as a conference proceeding at ICLR 2018 as an Oral.
 
-The below is an illustration of the main concept for the proposed training:
+**Problem statement is required (representation learning? image generation?).** The main idea of this paper is to minimize a penalized form of Wasserstein distance between the model-induced latent distribution and the target distribution. This is different from standard variational auto-encoder (VAE) training where WAE encourages the latent distribution to match the prior. This paper proposes two penalties, a GAN-based penalty and a Maximum Mean Discrepancy (MMD) based penalty, to push the two distributions closer.
+
+Differ from general GAN-based adversarial auto-encoders (AAEs), WAE with GAN-based penalty (WAE-GAN) performs the adversarial training directly on the latent space, which can deal with possibly multi-modal prior. For the MMD-based penalty, two kernels, RBF and IMQ, are used for the positive-definite reproducing kernel measuring the distributional divergence. Priors in this work can be assumed to be drawn from Gaussian distribution. Please refer to the original paper for details.
+
 <img src="figs/wae_model.png"/>
-Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
 
-The two proposed algorithms are as shown below:
-<img src="figs/wae_algo.png"/>
+**It would be better to briefly explain VAE and then explain the novelty of WAE.**
+Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape (**where is the white shape?**) in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
+
+**Use part of images and use a table to show two images**
+|                   WAE-GAN                  |                   WAE-MMD                  |
+| :----------------------------------------: | :----------------------------------------: |
+| <img src="figs/gan_results.png" width=300> | <img src="figs/mmd_results.png" width=300> |
 
 Results generated from randomly sampled noise vectors (GAN):
 <img src="figs/gan_results.png"/>
@@ -29,8 +36,9 @@ Results generated from randomly sampled noise vectors (MMD):
 - Python 3.5
 - [PyTorch](http://pytorch.org)
 - [TorchVision](http://pytorch.org)
-- [SciPy](http://www.scipy.org/install.html)
 - [NumPy](http://www.numpy.org/)
+- requests
+- tqdm
 
 ## Usage
 Run the following command for details of each arguments.
@@ -52,6 +60,10 @@ $ python3 download_datasets.py celebA
 ```bash
 python3 main.py --dataroot=data/celebA --dataset='celebA' --gpu_id=0 --cuda --noise='add_noise' --outf=gan_outputs/ --mode='gan' --lr=0.0003 --pz_scale=1 --LAMBDA=10 --niter=55 --e_pretrain
 ```
+
+## References
+* [Wasserstein Auto-Encoders (WAE)](https://arxiv.org/pdf/1711.01558.pdf)
+* [carpedm20's DCGAN implementation](https://github.com/carpedm20/DCGAN-tensorflow)
 
 ## Author
 
