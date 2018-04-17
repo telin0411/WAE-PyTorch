@@ -16,11 +16,11 @@ Differ from general GAN-based adversarial auto-encoders (AAEs), WAE with GAN-bas
 **It would be better to briefly explain VAE and then explain the novelty of WAE.**
 Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape (**where is the white shape?**) in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
 
-**Use part of images and use a table to show two images**
+**Use part of images (e.g. 6x6) and use a table to show two images. It would be nice to have brief result analysis**
 
 |                   WAE-GAN                  |                   WAE-MMD                  |
 | :----------------------------------------: | :----------------------------------------: |
-| <img src="figs/gan_results.png" width=300> | <img src="figs/mmd_results.png" width=300> |
+| <img src="figs/gan_results.png" width=400> | <img src="figs/mmd_results.png" width=400> |
 
 Results generated from randomly sampled noise vectors (GAN):
 <img src="figs/gan_results.png"/>
