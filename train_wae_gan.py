@@ -1,23 +1,16 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-from __future__ import print_function
-import argparse
-import os
-import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-from utils import weights_init, compute_acc, save_checkpoint
-from models.common import z_adversary, transform_noise
+
+from utils import weights_init, save_checkpoint
+from models.common import z_adversary
 from models.wae_gan_network import Encoder, Decoder
 from datasets import data_provider
 
@@ -77,7 +70,7 @@ def train(opt):
         fake_labels_ = labels[1]
         loss_Gz = dis_criterion3(sig(d_fake), real_labels_)
         loss_match = l * loss_Gz
-        return loss_Gz
+        return loss_match
 
     # tensor placeholders
     input = torch.FloatTensor(opt.batch_size, 3, opt.image_size, opt.image_size)
@@ -148,14 +141,14 @@ def train(opt):
                 if opt.cuda:
                     real_cpu = real_cpu.cuda()
                 input.data.resize_as_(real_cpu).copy_(real_cpu)
-                
+
                 # encode and sample noises
                 z_mean, z_sigmas = encoder(input)
                 sample_noise = Variable(torch.randn(batch_size, 64) * opt.pz_scale)
                 #sample_noise = Variable(torch.randn(batch_size, 64).clamp_(min=-1,max=1))
                 if opt.cuda:
                     sample_noise = sample_noise.cuda()
-                
+
                 # mean
                 mean_pz = torch.mean(sample_noise, dim=0, keepdim=True)
                 mean_qz = torch.mean(z_mean, dim=0, keepdim=True)
@@ -233,7 +226,7 @@ def train(opt):
             D_real = discriminator(sample_noise)
 
             sample_qz_mean, sample_qz_sigmas = encoder(input)
-            if opt.noise == "gaussain":
+            if opt.noise == "gaussian":
                 sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)
                 noise_fake_add = torch.randn(batch_size, 64)
                 noise_fake_add = Variable(noise_fake_add)
@@ -251,7 +244,7 @@ def train(opt):
 
             encoder.train()
             sample_qz_mean, sample_qz_sigmas = encoder(input)
-            if opt.noise == "gaussain":
+            if opt.noise == "gaussian":
                 sample_qz_sigmas = torch.clamp(sample_qz_sigmas, -50, 50)
                 noise_fake_add = torch.randn(batch_size, 64)
                 noise_fake_add = Variable(noise_fake_add)

@@ -1,9 +1,10 @@
-from __future__ import print_function
-import argparse
 import os
 import random
-import numpy as np
 import shutil
+import math
+
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -15,7 +16,6 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-import math
 
 
 # custom weights initialization called on netG and netD

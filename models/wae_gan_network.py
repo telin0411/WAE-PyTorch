@@ -89,7 +89,7 @@ class Encoder(nn.Module):
                 return mean, log_sigmas
         else:
             conv = self.net(input)
-            flat = conv.view(-1, 1*1*1024) 
+            flat = conv.view(-1, 1*1*1024)
             if self.noise != 'gaussian':
                 res = self.L(flat)
                 if self.pz == 'uniform':

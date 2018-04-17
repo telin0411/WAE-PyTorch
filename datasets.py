@@ -38,7 +38,7 @@ def data_provider(data_dir, batch_size, img_size=64, norm=0.5, num_workers=1,
                                                    (norm, norm, norm))
             transform_comp_list.append(trans_component)
         # compose the transformation
-        transform = transforms.Compose(transform_comp_list)       
+        transform = transforms.Compose(transform_comp_list)
 
         ## dataset
         dataset = datasets.ImageFolder(root=data_dir, transform=transform)
