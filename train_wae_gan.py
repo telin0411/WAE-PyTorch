@@ -196,6 +196,12 @@ def train(opt):
             dis_real_label.data.resize_(batch_size).fill_(REAL_LABEL)
             dis_fake_label.data.resize_(batch_size).fill_(FAKE_LABEL)
 
+            if opt.noise == 'add_noise':
+                pert = Variable(input.data.new(input.size()).normal_(0.0, 0.01))
+                if opt.cuda:
+                    pert = pert.cuda()
+                input += pert
+
             # standard VAE training, reconstruction loss
             z_mean, z_sigmas = encoder(input)
             if opt.noise == "gaussian":

@@ -7,7 +7,7 @@ This project is implemented by [Te-Lin Wu](https://github.com/telin0411) and the
 ## Descriptions
 This project is a [PyTorch](http://pytorch.org) implementation of [Wasserstein Auto-Encoders (WAE)](https://arxiv.org/pdf/1711.01558.pdf) which was published as a conference proceeding at ICLR 2018 as an Oral.
 
-**Problem statement is required (representation learning? image generation?).** The main idea of this paper is to minimize a penalized form of Wasserstein distance between the model-induced latent distribution and the target distribution. This is different from standard variational auto-encoder (VAE) training where WAE encourages the latent distribution to match the prior. This paper proposes two penalties, a GAN-based penalty and a Maximum Mean Discrepancy (MMD) based penalty, to push the two distributions closer.
+Representation learning has been driven by both supervised and unsupervised approaches, where variational auto-encoders (VAEs) is one of the widely used approach. However, it is known that VAEs tend to generate blurry results, while on the contrast, generative adversarial networks (GANs) can generate more visually appealing results. GANs, though gave impressive generation results, suffer from mode collapse where it sometimes cannot capture all the variability of the data distribution. Combining the advantages of both VAEs and GANs, the main idea of this paper is to minimize a penalized form of Wasserstein distance between the model-induced latent distribution and the target distribution. This is different from standard VAE training where WAE encourages the latent distribution to match the prior. This paper proposes two penalties, a GAN-based penalty and a Maximum Mean Discrepancy (MMD) based penalty, to push the two distributions closer.
 
 Differ from general GAN-based adversarial auto-encoders (AAEs), WAE with GAN-based penalty (WAE-GAN) performs the adversarial training directly on the latent space, which can deal with possibly multi-modal prior. For the MMD-based penalty, two kernels, RBF and IMQ, are used for the positive-definite reproducing kernel measuring the distributional divergence. Priors in this work can be assumed to be drawn from Gaussian distribution. Please refer to the original paper for details.
 
@@ -16,17 +16,17 @@ Differ from general GAN-based adversarial auto-encoders (AAEs), WAE with GAN-bas
 **It would be better to briefly explain VAE and then explain the novelty of WAE.**
 Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape (**where is the white shape?**) in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
 
-**Use part of images (e.g. 6x6) and use a table to show two images. It would be nice to have brief result analysis**
+## Image Generation Results
 
+The restuls as shown below are generated from randomly sampled noise vectors.
+If carefully inspected, one can notice that WAE-GAN tends to generate more realistic results.
+However, WAE-GAN is harder to train due to its adversarial nature, where WAE-MMD is more stable and vanilla VAE-like.
 |                   WAE-GAN                  |                   WAE-MMD                  |
 | :----------------------------------------: | :----------------------------------------: |
 | <img src="figs/gan_results.png" width=400> | <img src="figs/mmd_results.png" width=400> |
 
-Results generated from randomly sampled noise vectors (GAN):
-<img src="figs/gan_results.png"/>
 
-Results generated from randomly sampled noise vectors (MMD):
-<img src="figs/mmd_results.png"/>
+## Notes
 
 * The implemented model can be trained on dataset [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html).
 * Note that this implementation may differ in details from the original paper such as model architectures, hyperparameters, applied optimizer, etc. while maintaining the main proposed idea.
