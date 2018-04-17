@@ -30,7 +30,7 @@ def get_parsers():
     parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
     parser.add_argument('--checkpoint', default='', help="path to checkpoint (to continue training)")
     parser.add_argument('--outf', default='.', help='folder to output images and model checkpoints')
-    parser.add_argument('--noise', default='gaussian', help='noise type for WAE, | gaussian | add_noise |')
+    parser.add_argument('--noise', default='gaussian', choices=['gaussian', 'add_noise'], help='noise type for WAE, | gaussian | add_noise |')
     parser.add_argument('--seed', type=int, default=None, help='manual seed')
     parser.add_argument('--gpu_id', type=int, default=0, help='The ID of the specified GPU')
     parser.add_argument('--LAMBDA', type=float, default=100, help='LAMBDA for WAE')

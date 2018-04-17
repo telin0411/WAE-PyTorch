@@ -39,20 +39,18 @@ $ python3 main.py -h
 ```
 
 ### Download the dataset
-* Run the following command to download the celebA dataset. Note that it will automatically store to `./data/`.
+* Run the following command to download the celebA dataset. Note that it will automatically store the dataset to `./data/`.
 * Code thanks to [carpedm20](https://github.com/carpedm20/DCGAN-tensorflow)
 ```bash
-$ python download.py celebA
+$ python3 download_datasets.py celebA
 ```
 
 ### Train the models
 * Below is the example training command, the code will automatically generate and store images for testing during training to the `--outf` directory.
 * You can also refer to `run.sh` for reproducing the results.
-* In this example, you need to create a directory named `data/CelebA`, and store the extracted directory of celebA dataset there.
-* Notice that since the dataloader utilizes image folder API, so the `dataroot` should look like `/path/to/dataroot/folder/XXX.jpg`
-* In this example the `/path/to/dataroot/` is `data/CelebA` and you can name the folder whatever name you like.
+* Note that since the dataloader utilizes image folder API, the `dataroot` should look like `/path/to/dataroot/sub_directory/XXX.jpg`. In this example the `/path/to/dataroot/` is `data/celebA`.
 ```bash
-python3 main.py --dataroot=data/CelebA --dataset='celebA' --gpu_id=0 --cuda --noise='add_noise' --outf=gan_outputs/ --mode='gan' --lr=0.0003 --pz_scale=1 --LAMBDA=10 --niter=55 --e_pretrain
+python3 main.py --dataroot=data/celebA --dataset='celebA' --gpu_id=0 --cuda --noise='add_noise' --outf=gan_outputs/ --mode='gan' --lr=0.0003 --pz_scale=1 --LAMBDA=10 --niter=55 --e_pretrain
 ```
 
 ## Author

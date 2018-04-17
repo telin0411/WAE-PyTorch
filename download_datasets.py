@@ -163,15 +163,15 @@ def download_mnist(dirpath):
     subprocess.call(cmd)
 
 def prepare_data_dir(path = './data'):
-  if not os.path.exists(path):
-    os.mkdir(path)
+  os.makedirs(path, exist_ok=True)
 
 if __name__ == '__main__':
   args = parser.parse_args()
   prepare_data_dir()
 
-  if any(name in args.datasets for name in ['CelebA', 'celebA', 'celebA']):
-    download_celeb_a('./data')
+  if any(name in args.datasets for name in ['CelebA', 'celebA']):
+    os.makedirs('./data/celebA', exist_ok=True)
+    download_celeb_a('./data/celebA')
   if 'lsun' in args.datasets:
     download_lsun('./data')
   if 'mnist' in args.datasets:
