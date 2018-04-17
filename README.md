@@ -21,6 +21,7 @@ Both VAE and WAE minimize the reconstruction loss and the penalties to regulariz
 The restuls as shown below are generated from randomly sampled noise vectors.
 If carefully inspected, one can notice that WAE-GAN tends to generate more realistic results.
 However, WAE-GAN is harder to train due to its adversarial nature, where WAE-MMD is more stable and vanilla VAE-like.
+
 |                   WAE-GAN                  |                   WAE-MMD                  |
 | :----------------------------------------: | :----------------------------------------: |
 | <img src="figs/gan_results.png" width=400> | <img src="figs/mmd_results.png" width=400> |
