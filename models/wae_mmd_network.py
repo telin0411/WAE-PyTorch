@@ -1,18 +1,5 @@
-import os
-import sys
-import random
-import logging
-import numpy as np
-from tqdm import tqdm
-import glob
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import Variable
-from torchvision import datasets, transforms
-from .common import z_adversary, transform_noise
 
 
 class Encoder(nn.Module):
@@ -83,7 +70,7 @@ class Encoder(nn.Module):
                 return mean, log_sigmas
         else:
             conv = self.net(input)
-            flat = conv.view(-1, 1*1*1024) 
+            flat = conv.view(-1, 1*1*1024)
             if self.noise != 'gaussian':
                 res = self.L(flat)
                 if self.pz == 'uniform':

@@ -1,10 +1,6 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-import argparse
-import os
-import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -32,17 +28,17 @@ def train(opt):
     # Define the encoder and initialize the weights
     encoder = Encoder(ngpu, noise=opt.noise)
     encoder.apply(weights_init)
-    print (encoder)
+    print(encoder)
 
     # Define the decoder and initialize the weights
     decoder = Decoder(ngpu, input_normalize_sym=opt.input_normalize_sym)
     decoder.apply(weights_init)
-    print (decoder)
+    print(decoder)
 
     # Define the discriminator and initialize the weights
     discriminator = z_adversary(ngpu, ifcuda=opt.cuda, nowozin_trick=False)
     discriminator.apply(weights_init)
-    print (discriminator)
+    print(discriminator)
 
     # define loss functions
     rec_criterion = nn.MSELoss()
@@ -56,10 +52,10 @@ def train(opt):
         sig = nn.Sigmoid()
         if opt.cuda:
             sig = sig.cuda()
-        REAL_LABELs_ = labels[0]
-        FAKE_LABELs_ = labels[1]
-        loss_Pz = dis_criterion1(sig(d_real), REAL_LABELs_)
-        loss_Qz = dis_criterion2(sig(d_fake), FAKE_LABELs_)
+        real_labels_ = labels[0]
+        fake_labels_ = labels[1]
+        loss_Pz = dis_criterion1(sig(d_real), real_labels_)
+        loss_Qz = dis_criterion2(sig(d_fake), fake_labels_)
         loss_adv = l * (loss_Pz + loss_Qz)
         return loss_adv
 
@@ -67,17 +63,17 @@ def train(opt):
         sig = nn.Sigmoid()
         if opt.cuda:
             sig = sig.cuda()
-        REAL_LABELs_ = labels[0]
-        FAKE_LABELs_ = labels[1]
-        loss_Gz = dis_criterion3(sig(d_fake), REAL_LABELs_)
+        real_labels_ = labels[0]
+        fake_labels_ = labels[1]
+        loss_Gz = dis_criterion3(sig(d_fake), real_labels_)
         loss_match = l * loss_Gz
         return loss_match
 
     # tensor placeholders
     input = torch.FloatTensor(opt.batch_size, 3, opt.image_size, opt.image_size)
     noise = torch.FloatTensor(opt.batch_size, nz)
-    dis_REAL_LABEL = torch.FloatTensor(opt.batch_size)
-    dis_FAKE_LABEL = torch.FloatTensor(opt.batch_size)
+    dis_real_label = torch.FloatTensor(opt.batch_size)
+    dis_fake_label = torch.FloatTensor(opt.batch_size)
     REAL_LABEL = 1
     FAKE_LABEL = 0
 
@@ -92,14 +88,14 @@ def train(opt):
         dis_criterion3.cuda()
         discriminator.cuda()
         input = input.cuda()
-        dis_REAL_LABEL, dis_FAKE_LABEL = dis_REAL_LABEL.cuda(), dis_FAKE_LABEL.cuda()
+        dis_real_label, dis_fake_label = dis_real_label.cuda(), dis_fake_label.cuda()
         noise = noise.cuda()
 
     # define variables
     input = Variable(input)
     noise = Variable(noise)
-    dis_REAL_LABEL = Variable(dis_REAL_LABEL)
-    dis_FAKE_LABEL = Variable(dis_FAKE_LABEL)
+    dis_real_label = Variable(dis_real_label)
+    dis_fake_label = Variable(dis_fake_label)
 
     # setup optimizer
     optimizerEnc = optim.Adam(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -130,7 +126,7 @@ def train(opt):
     # pretrain the encoder so that mean and covariance
     # of Qz will try to match those of Pz
     if opt.e_pretrain and opt.checkpoint == '':
-        print ("#"*20 + " Pretrain Encoder " + "#"*20)
+        print("#"*20 + " Pretrain Encoder " + "#"*20)
         avg_loss_P = 0.0
         for pepoch in range(opt.e_pretrain_iters):
             for prei, data in enumerate(dataloader, 0):
@@ -179,7 +175,7 @@ def train(opt):
     avg_loss_G = 0.0
     avg_loss_D = 0.0
     assert start_epoch <= opt.niter
-    print ("#"*20 + " Main Training " + "#"*20)
+    print("#"*20 + " Main Training " + "#"*20)
     for epoch in range(start_epoch, opt.niter):
         for i, data in enumerate(dataloader, 0):
             encoder.train()
@@ -197,8 +193,8 @@ def train(opt):
             if opt.cuda:
                 real_cpu = real_cpu.cuda()
             input.data.resize_as_(real_cpu).copy_(real_cpu)
-            dis_REAL_LABEL.data.resize_(batch_size).fill_(REAL_LABEL)
-            dis_FAKE_LABEL.data.resize_(batch_size).fill_(FAKE_LABEL)
+            dis_real_label.data.resize_(batch_size).fill_(REAL_LABEL)
+            dis_fake_label.data.resize_(batch_size).fill_(FAKE_LABEL)
 
             # standard VAE training, reconstruction loss
             z_mean, z_sigmas = encoder(input)
@@ -237,7 +233,7 @@ def train(opt):
                 sample_qz = sample_qz_mean
             D_fake = discriminator(sample_qz)
 
-            dis_labels = (dis_REAL_LABEL, dis_FAKE_LABEL)
+            dis_labels = (dis_real_label, dis_fake_label)
             loss_d = d_crit(D_real, D_fake, LAMBDA, dis_labels, eps=1e-15)
             loss_d.backward()
             optimizerDis.step()
@@ -256,7 +252,7 @@ def train(opt):
                 sample_qz = sample_qz_mean
             D_fake = discriminator(sample_qz)
 
-            dis_labels = (dis_REAL_LABEL, dis_FAKE_LABEL)
+            dis_labels = (dis_real_label, dis_fake_label)
             loss_g = g_crit(D_fake, LAMBDA, dis_labels, eps=1e-15)
             loss_g.backward()
             optimizerGen.step()
@@ -290,7 +286,7 @@ def train(opt):
                     eval_images.data,
                     '%s/fake_samples_epoch_%03d.png' % (opt.outf, epoch)
                 )
-                print ("saved output images to {}".format(opt.outf))
+                print("saved output images to {}".format(opt.outf))
 
         # do checkpointing
         is_best = loss_recon.data[0] < best_mse

@@ -5,32 +5,16 @@ import argparse
 import os
 import random
 
-import numpy as np
-
 import torch
-import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
-import torch.optim as optim
 import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
-import torchvision.utils as vutils
-from torch.autograd import Variable
-
-from utils import weights_init, compute_acc, save_checkpoint
-from models.common import z_adversary, transform_noise
-from models.wae_gan_network import Encoder, Decoder
-from datasets import data_provider
-from train_wae_gan import train as train_gan
-from train_wae_mmd import train as train_mmd
 
 
 def get_parsers():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', required=True, help='celebA')
+    parser.add_argument('--dataset', required=True, choices=['celebA'], help='celebA')
     parser.add_argument('--dataroot', required=True, help='path to dataset')
-    parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
     parser.add_argument('--batch_size', type=int, default=100, help='input batch size')
     parser.add_argument('--image_size', type=int, default=128, help='the height / width of the input image to network')
     parser.add_argument('--nz', type=int, default=64, help='size of the latent z vector, noise')
@@ -50,10 +34,9 @@ def get_parsers():
     parser.add_argument('--seed', type=int, default=None, help='manual seed')
     parser.add_argument('--gpu_id', type=int, default=0, help='The ID of the specified GPU')
     parser.add_argument('--LAMBDA', type=float, default=100, help='LAMBDA for WAE')
-    parser.add_argument('--eps', type=float, default=1e-15, help='epsilon')
     parser.add_argument('--img_norm', type=float, default=None, help='normalization of images')
-    parser.add_argument('--mode', type=str, default='gan', help='| gan | mmd |')
-    parser.add_argument('--kernel', type=str, default='IMQ', help='| RBF | IMQ |')
+    parser.add_argument('--mode', type=str, default='gan', choices=['gan', 'mmd'], help='| gan | mmd |')
+    parser.add_argument('--kernel', type=str, default='IMQ', choices=['RBF', 'IMQ'], help='| RBF | IMQ |')
     parser.add_argument('--pz_scale', type=float, default=1., help='sacling of sample noise')
     opt = parser.parse_args()
     print(opt)
@@ -67,10 +50,7 @@ def main():
         os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu_id)
 
     # output directory
-    try:
-        os.makedirs(opt.outf)
-    except OSError:
-        pass
+    os.makedirs(opt.outf, exist_ok=True)
 
     # random seeds
     if opt.seed is None:
@@ -88,11 +68,12 @@ def main():
 
     # main training
     if opt.mode == 'gan':
-        train_gan(opt)
+        from train_wae_gan import train
     elif opt.mode == 'mmd':
-        train_mmd(opt)
+        from train_wae_mmd import train
     else:
         raise NotImplementedError
+    train(opt)
 
 
 if __name__ == "__main__":

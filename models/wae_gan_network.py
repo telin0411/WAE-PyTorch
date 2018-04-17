@@ -1,18 +1,5 @@
-import os
-import sys
-import random
-import logging
-import numpy as np
-from tqdm import tqdm
-import glob
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import Variable
-from torchvision import datasets, transforms
-from .common import z_adversary, transform_noise
 
 
 class Encoder(nn.Module):
@@ -26,22 +13,18 @@ class Encoder(nn.Module):
                 # Layer 1
                 nn.Conv2d(3, 128, 5, 2, 0, bias=False),
                 nn.BatchNorm2d(128, momentum=0.9),
-                #nn.BatchNorm2d(128),
                 nn.ReLU(inplace=True),
                 # Layer 2
                 nn.Conv2d(128, 256, 5, 2, 0, bias=False),
                 nn.BatchNorm2d(256, momentum=0.9),
-                #nn.BatchNorm2d(256),
                 nn.ReLU(inplace=True),
                 # Layer 3
                 nn.Conv2d(256, 512, 5, 2, 0, bias=False),
                 nn.BatchNorm2d(512, momentum=0.9),
-                #nn.BatchNorm2d(512),
                 nn.ReLU(inplace=True),
                 # Layer 4
                 nn.Conv2d(512, 1024, 5, 2, 0, bias=False),
                 nn.BatchNorm2d(1024, momentum=0.9),
-                #nn.BatchNorm2d(1024),
                 nn.ReLU(inplace=True),
             )
         else:
@@ -118,17 +101,14 @@ class Decoder(nn.Module):
                 # Layer 1
                 nn.ConvTranspose2d(1024, 512, 4, 2, 1, bias=False),
                 nn.BatchNorm2d(512, momentum=0.9),
-                #nn.BatchNorm2d(512),
                 nn.ReLU(inplace=True),
                 # Layer 2
                 nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
                 nn.BatchNorm2d(256, momentum=0.9),
-                #nn.BatchNorm2d(256),
                 nn.ReLU(inplace=True),
                 # Layer 3
                 nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
                 nn.BatchNorm2d(128, momentum=0.9),
-                #nn.BatchNorm2d(128),
                 nn.ReLU(inplace=True),
                 # Layer 4
                 nn.ConvTranspose2d(128, 3, 4, 2, 1, bias=False),

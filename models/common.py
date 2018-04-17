@@ -1,6 +1,3 @@
-import os
-import sys
-import random
 import numpy as np
 
 import torch
@@ -44,8 +41,8 @@ class z_adversary(nn.Module):
         if self.nowozin_trick:
             normsq = torch.sum(input**2, 1, keepdim=False)
             sigma2_p_a = np.asarray(sigma2_p)
-            m1 = Variable( 0.5 * torch.log(torch.from_numpy(np.asarray(2. * np.pi))) ).type(torch.FloatTensor)
-            m2 = Variable( 0.5 * 64 * torch.log(torch.from_numpy(sigma2_p_a)) ).type(torch.FloatTensor)
+            m1 = Variable(0.5 * torch.log(torch.from_numpy(np.asarray(2. * np.pi)))).type(torch.FloatTensor)
+            m2 = Variable(0.5 * 64 * torch.log(torch.from_numpy(sigma2_p_a))).type(torch.FloatTensor)
             if self.ifcuda:
                 m1, m2 = m1.cuda(), m2.cuda()
                 normsq = normsq.cuda()

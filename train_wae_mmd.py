@@ -1,9 +1,6 @@
 """
 Code modified from PyTorch DCGAN examples: https://github.com/pytorch/examples/tree/master/dcgan
 """
-import os
-import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -77,17 +74,16 @@ def train(opt):
     # some hyper parameters
     ngpu = int(opt.ngpu)
     nz = int(opt.nz)
-    LAMBDA = opt.LAMBDA
 
     # Define the encoder and initialize the weights
     encoder = Encoder(ngpu, noise=opt.noise)
     encoder.apply(weights_init)
-    print (encoder)
+    print(encoder)
 
     # Define the decoder and initialize the weights
     decoder = Decoder(ngpu)
     decoder.apply(weights_init)
-    print (decoder)
+    print(decoder)
 
     # define loss functions
     rec_criterion = nn.MSELoss()
@@ -135,7 +131,7 @@ def train(opt):
     # pretrain the encoder so that mean and covariance
     # of Qz will try to match those of Pz
     if opt.e_pretrain and opt.checkpoint == '':
-        print ("#"*20 + " Pretrain Encoder " + "#"*20)
+        print("#"*20 + " Pretrain Encoder " + "#"*20)
         avg_loss_P = 0.0
         for pepoch in range(opt.e_pretrain_iters):
             for prei, data in enumerate(dataloader, 0):
@@ -183,7 +179,7 @@ def train(opt):
     avg_loss_R = 0.0
     avg_loss_Z = 0.0
     assert start_epoch <= opt.niter
-    print ("#"*20 + " Main Training " + "#"*20)
+    print("#"*20 + " Main Training " + "#"*20)
     for epoch in range(start_epoch, opt.niter):
         for i, data in enumerate(dataloader, 0):
             encoder.train()
@@ -262,7 +258,7 @@ def train(opt):
                     eval_images.data,
                     '%s/fake_samples_epoch_%03d.png' % (opt.outf, epoch)
                 )
-                print ("saved output images to {}".format(opt.outf))
+                print("saved output images to {}".format(opt.outf))
 
         # do checkpointing
         is_best = loss_recon.data[0] < best_mse
