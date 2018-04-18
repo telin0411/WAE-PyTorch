@@ -13,8 +13,7 @@ Differ from general GAN-based adversarial auto-encoders (AAEs), WAE with GAN-bas
 
 <img src="figs/wae_model.png"/>
 
-**It would be better to briefly explain VAE and then explain the novelty of WAE.**
-Both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape (**where is the white shape?**) in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
+Traditional VAEs minimize a variational lower bound which consists of a reconstruction loss and a regularizer loss, where the regularizer computes how different the original images feeding into the encoder are according to the prior P. Howeverm this does not guarantee that the overall encoded latent distribution matches the prior P. On the other hand, VAEs require non-deterministic gaussian encoders and random decoders when training. WAEs in contrast allow both probabilistic and deterministic encoder-decoder pairs of any kind. As shown above, both VAE and WAE minimize the reconstruction loss and the penalties to regularize discrepancy between P and distribution induced by encoder Q. VAE forces every latent point to match P depicted as the white shape (light blue co-centered circles) in the figure, which can be seen intersecting with one another, resulting in suboptimal reconstruction. In contrast, WAE forces a continuous mixture to match P, and thus the latent points can get away from intersecting one another, resulting in better reconstruction results.
 
 ## Image Generation Results
 
